@@ -1,0 +1,407 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/*
+ |----------------------------------------------------------------------
+ | Modo escuro por classe
+ |----------------------------------------------------------------------
+ | Ativado quando <html class="dark">. Permite alternância manual com
+ | preferência persistida (ver resources/js/app.js).
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Identidade — marca (indigo premium) */
+    --color-brand-50: #eef2ff;
+    --color-brand-100: #e0e7ff;
+    --color-brand-200: #c7d2fe;
+    --color-brand-300: #a5b4fc;
+    --color-brand-400: #818cf8;
+    --color-brand-500: #6366f1;
+    --color-brand-600: #4f46e5;
+    --color-brand-700: #4338ca;
+    --color-brand-800: #3730a3;
+    --color-brand-900: #312e81;
+    --color-brand-950: #1e1b4b;
+
+    /* Identidade — sotaque (dourado legislativo) */
+    --color-accent-300: #fcd34d;
+    --color-accent-400: #fbbf24;
+    --color-accent-500: #f59e0b;
+    --color-accent-600: #d97706;
+
+    /* Chrome (sidebar): tonalidade própria, estável nos dois temas */
+    --color-ink-950: #080d1a;
+    --color-ink-900: #0f172a;
+    --color-ink-800: #17223a;
+    --color-ink-700: #223049;
+    --color-ink-600: #33415c;
+    --color-ink-300: #94a3b8;
+
+    /* Elevação e raios */
+    --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.08);
+    --shadow-elevated: 0 18px 40px -18px rgb(15 23 42 / 0.35);
+    --radius-card: 1rem;
+
+    /* Microanimações */
+    --animate-fade-up: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    --animate-fade-in: fade-in 0.4s ease-out both;
+
+    @keyframes fade-up {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+}
+
+/*
+ |----------------------------------------------------------------------
+ | Tokens semânticos (alternam com o tema)
+ |----------------------------------------------------------------------
+ */
+:root {
+    --canvas: #f4f6fb;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+    --line: #e5e9f2;
+    --line-strong: #cbd5e1;
+    --body: #1e293b;
+    --muted: #64748b;
+    --faint: #94a3b8;
+}
+
+.dark {
+    --canvas: #0b1120;
+    --surface: #111a2e;
+    --surface-2: #17223a;
+    --line: #223049;
+    --line-strong: #33415c;
+    --body: #e2e8f0;
+    --muted: #94a3b8;
+    --faint: #64748b;
+}
+
+@theme inline {
+    --color-canvas: var(--canvas);
+    --color-surface: var(--surface);
+    --color-surface-2: var(--surface-2);
+    --color-line: var(--line);
+    --color-line-strong: var(--line-strong);
+    --color-body: var(--body);
+    --color-muted: var(--muted);
+    --color-faint: var(--faint);
+}
+
+/*
+ |----------------------------------------------------------------------
+ | Base
+ |----------------------------------------------------------------------
+ */
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background-color: var(--canvas);
+        color: var(--body);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    ::selection {
+        background-color: color-mix(in oklab, var(--color-brand-500) 26%, transparent);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand-500);
+        outline-offset: 2px;
+        border-radius: 6px;
+    }
+
+    /* Transições suaves em elementos interativos (microanimações) */
+    a,
+    button,
+    [role='button'],
+    input,
+    select,
+    textarea,
+    summary {
+        transition:
+            color 0.15s ease,
+            background-color 0.15s ease,
+            border-color 0.15s ease,
+            box-shadow 0.15s ease,
+            transform 0.15s ease,
+            opacity 0.15s ease;
+    }
+
+    /* Rolagem discreta */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--line-strong) transparent;
+    }
+
+    *::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background-color: var(--line-strong);
+        border: 3px solid transparent;
+        background-clip: content-box;
+        border-radius: 9999px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+}
+
+/*
+ |----------------------------------------------------------------------
+ | Utilidades — ponte de modo escuro para utilidades legadas
+ |----------------------------------------------------------------------
+ | As telas existentes usam a paleta slate/white do Tailwind. Em vez de
+ | reescrever cada view, estas regras remapeiam as utilidades para os
+ | tokens semânticos quando o tema escuro está ativo.
+ | (Especificidade .dark sobrescreve a utilidade — sem !important.)
+ */
+@layer utilities {
+    .dark .bg-white {
+        background-color: var(--surface);
+    }
+    .dark .bg-slate-50,
+    .dark .bg-slate-100 {
+        background-color: var(--surface-2);
+    }
+    .dark .bg-slate-200 {
+        background-color: var(--line);
+    }
+    .dark .hover\:bg-slate-50:hover,
+    .dark .hover\:bg-slate-100:hover {
+        background-color: var(--surface-2);
+    }
+    .dark .hover\:bg-slate-200:hover {
+        background-color: var(--line);
+    }
+
+    .dark .border-slate-50,
+    .dark .border-slate-100,
+    .dark .border-slate-200 {
+        border-color: var(--line);
+    }
+    .dark .border-slate-300 {
+        border-color: var(--line-strong);
+    }
+    .dark .divide-slate-50 > :not(:last-child),
+    .dark .divide-slate-100 > :not(:last-child) {
+        border-color: var(--line);
+    }
+
+    .dark .text-slate-900,
+    .dark .text-slate-800 {
+        color: var(--body);
+    }
+    .dark .text-slate-700,
+    .dark .text-slate-600,
+    .dark .text-slate-500 {
+        color: var(--muted);
+    }
+    .dark .text-slate-400 {
+        color: var(--faint);
+    }
+
+    /* Formulários */
+    .dark input:not([type='checkbox']):not([type='radio']):not([type='range']),
+    .dark select,
+    .dark textarea {
+        background-color: var(--surface-2);
+        border-color: var(--line-strong);
+        color: var(--body);
+    }
+    .dark select option {
+        background-color: var(--surface);
+        color: var(--body);
+    }
+    .dark input::placeholder,
+    .dark textarea::placeholder {
+        color: var(--faint);
+    }
+
+    /* Badges e acentos (bg-*-50/100 + text-*-600/700) */
+    .dark .bg-indigo-50,
+    .dark .bg-indigo-100 {
+        background-color: color-mix(in oklab, var(--color-indigo-500) 22%, transparent);
+    }
+    .dark .text-indigo-600,
+    .dark .text-indigo-700 {
+        color: var(--color-indigo-300);
+    }
+    .dark .bg-sky-50,
+    .dark .bg-sky-100 {
+        background-color: color-mix(in oklab, var(--color-sky-500) 22%, transparent);
+    }
+    .dark .text-sky-600,
+    .dark .text-sky-700 {
+        color: var(--color-sky-300);
+    }
+    .dark .bg-blue-50,
+    .dark .bg-blue-100 {
+        background-color: color-mix(in oklab, var(--color-blue-500) 22%, transparent);
+    }
+    .dark .text-blue-600,
+    .dark .text-blue-700 {
+        color: var(--color-blue-300);
+    }
+    .dark .bg-cyan-50,
+    .dark .bg-cyan-100 {
+        background-color: color-mix(in oklab, var(--color-cyan-500) 22%, transparent);
+    }
+    .dark .text-cyan-600,
+    .dark .text-cyan-700 {
+        color: var(--color-cyan-300);
+    }
+    .dark .bg-teal-50,
+    .dark .bg-teal-100 {
+        background-color: color-mix(in oklab, var(--color-teal-500) 22%, transparent);
+    }
+    .dark .text-teal-600,
+    .dark .text-teal-700 {
+        color: var(--color-teal-300);
+    }
+    .dark .bg-emerald-50,
+    .dark .bg-emerald-100 {
+        background-color: color-mix(in oklab, var(--color-emerald-500) 22%, transparent);
+    }
+    .dark .text-emerald-600,
+    .dark .text-emerald-700 {
+        color: var(--color-emerald-300);
+    }
+    .dark .bg-green-50,
+    .dark .bg-green-100 {
+        background-color: color-mix(in oklab, var(--color-green-500) 22%, transparent);
+    }
+    .dark .text-green-600,
+    .dark .text-green-700 {
+        color: var(--color-green-300);
+    }
+    .dark .bg-lime-50,
+    .dark .bg-lime-100 {
+        background-color: color-mix(in oklab, var(--color-lime-500) 22%, transparent);
+    }
+    .dark .text-lime-600,
+    .dark .text-lime-700 {
+        color: var(--color-lime-300);
+    }
+    .dark .bg-yellow-50,
+    .dark .bg-yellow-100 {
+        background-color: color-mix(in oklab, var(--color-yellow-500) 22%, transparent);
+    }
+    .dark .text-yellow-600,
+    .dark .text-yellow-700 {
+        color: var(--color-yellow-300);
+    }
+    .dark .bg-amber-50,
+    .dark .bg-amber-100 {
+        background-color: color-mix(in oklab, var(--color-amber-500) 22%, transparent);
+    }
+    .dark .text-amber-600,
+    .dark .text-amber-700 {
+        color: var(--color-amber-300);
+    }
+    .dark .bg-orange-50,
+    .dark .bg-orange-100 {
+        background-color: color-mix(in oklab, var(--color-orange-500) 22%, transparent);
+    }
+    .dark .text-orange-600,
+    .dark .text-orange-700 {
+        color: var(--color-orange-300);
+    }
+    .dark .bg-red-50,
+    .dark .bg-red-100 {
+        background-color: color-mix(in oklab, var(--color-red-500) 22%, transparent);
+    }
+    .dark .text-red-600,
+    .dark .text-red-700 {
+        color: var(--color-red-300);
+    }
+    .dark .bg-rose-50,
+    .dark .bg-rose-100 {
+        background-color: color-mix(in oklab, var(--color-rose-500) 22%, transparent);
+    }
+    .dark .text-rose-600,
+    .dark .text-rose-700 {
+        color: var(--color-rose-300);
+    }
+    .dark .bg-pink-50,
+    .dark .bg-pink-100 {
+        background-color: color-mix(in oklab, var(--color-pink-500) 22%, transparent);
+    }
+    .dark .text-pink-600,
+    .dark .text-pink-700 {
+        color: var(--color-pink-300);
+    }
+    .dark .bg-fuchsia-50,
+    .dark .bg-fuchsia-100 {
+        background-color: color-mix(in oklab, var(--color-fuchsia-500) 22%, transparent);
+    }
+    .dark .text-fuchsia-600,
+    .dark .text-fuchsia-700 {
+        color: var(--color-fuchsia-300);
+    }
+    .dark .bg-purple-50,
+    .dark .bg-purple-100 {
+        background-color: color-mix(in oklab, var(--color-purple-500) 22%, transparent);
+    }
+    .dark .text-purple-600,
+    .dark .text-purple-700 {
+        color: var(--color-purple-300);
+    }
+    .dark .bg-violet-50,
+    .dark .bg-violet-100 {
+        background-color: color-mix(in oklab, var(--color-violet-500) 22%, transparent);
+    }
+    .dark .text-violet-600,
+    .dark .text-violet-700 {
+        color: var(--color-violet-300);
+    }
+}
+
+/*
+ |----------------------------------------------------------------------
+ | Acessibilidade — respeita "reduzir movimento"
+ |----------------------------------------------------------------------
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
