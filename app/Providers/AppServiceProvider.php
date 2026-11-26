@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Middleware\TrustProxies;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,5 +31,11 @@ class AppServiceProvider extends ServiceProvider
         if (filled($proxies)) {
             TrustProxies::at($proxies);
         }
+
+        // O endpoint /up passa a validar a conexão com o banco de dados,
+        // retornando 500 quando o banco estiver indisponível (uso em monitoramento).
+        Event::listen(DiagnosingHealth::class, function (): void {
+            DB::connection()->getPdo();
+        });
     }
 }

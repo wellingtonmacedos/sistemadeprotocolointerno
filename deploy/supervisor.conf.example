@@ -1,0 +1,23 @@
+; Exemplo de configuração Supervisor para o worker de fila (VPS).
+;
+; 1) Copie para /etc/supervisor/conf.d/protocolo-worker.conf
+; 2) Ajuste os caminhos, o usuário e o número de processos
+; 3) supervisorctl reread && supervisorctl update
+; 4) supervisorctl status protocolo-worker:*
+
+[program:protocolo-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/protocolo/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+directory=/var/www/protocolo
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/www/protocolo/storage/logs/worker.log
+stopwaitsecs=3600
+
+; O agendador (backups, limpeza de fila) roda via cron a cada minuto:
+;   * * * * * cd /var/www/protocolo && php artisan schedule:run >> /dev/null 2>&1

@@ -12,6 +12,7 @@ use App\Http\Controllers\LegislativeSessionController;
 use App\Http\Controllers\Councilor\CouncilorDashboardController;
 use App\Http\Controllers\CouncilorController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstitutionController;
 use App\Http\Controllers\LegislativeFlowController;
 use App\Http\Controllers\PostVotingActionController;
@@ -32,9 +33,7 @@ use App\Http\Controllers\SectorController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return auth()->check() ? redirect()->route('painel') : redirect()->route('login');
-});
+Route::get('/', HomeController::class);
 
 // Autenticação
 Route::middleware('guest')->group(function () {

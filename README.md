@@ -23,7 +23,7 @@ composer install
 cp .env.example .env
 php artisan key:generate
 npm install && npm run build
-php artisan migrate --seed --force
+php artisan migrate --seed --force   # defina SUPER_ADMIN_PASSWORD no .env antes de rodar
 ```
 
 ### Variáveis essenciais (.env)
@@ -109,36 +109,36 @@ O comando `php artisan backup:run` gera, de hora em hora, os backups das Câmara
 
 ## Implantação
 
+O passo a passo completo está em **[docs/DEPLOY.md](docs/DEPLOY.md)**, com arquivos de exemplo em [`deploy/`](deploy).
+
 ### cPanel (hospedagem compartilhada)
 
 1. Envie o projeto para uma pasta **fora** de `public_html` (ex.: `/home/usuario/protocolo`).
 2. Aponte o domínio/subdomínio para `protocolo/public`.
-3. Em `/home/usuario/public_html`, crie um `.htaccess` (ou use o recurso "Document Root" do painel) redirecionando para a pasta `public`.
-4. Crie o banco MySQL e o usuário pelo painel; ajuste o `.env`.
-5. Execute via Terminal do cPanel (ou SSH):
+3. Ajuste o `.env`. Em cPanel sem MySQL, use `DB_CONNECTION=sqlite`.
+4. Execute via Terminal do cPanel (ou SSH):
    ```bash
    composer install --no-dev --optimize-autoloader
    php artisan key:generate
-   npm install && npm run build   # ou envie a pasta public/build já compilada
-   php artisan migrate --seed --force
-   php artisan storage:link
-   php artisan config:cache && php artisan route:cache && php artisan view:cache
+   npm ci && npm run build   # ou envie a pasta public/build já compilada
+   php artisan migrate --force
+   php artisan db:seed --class=RolePermissionSeeder --force
+   php artisan db:seed --class=SuperAdminSeeder --force
+   php artisan optimize        # config + routes + views
    ```
-6. Ajuste permissões de escrita em `storage/` e `bootstrap/cache/`.
-7. Configure o Cron conforme a seção anterior.
-
-> O `mysqldump` costuma estar disponível no cPanel; caso contrário, o sistema reporta erro claro ao tentar gerar o backup do banco.
+5. Ajuste permissões de escrita em `storage/` e `bootstrap/cache/`.
+6. Configure **uma** tarefa cron por minuto: `php artisan schedule:run`.
 
 ### VPS (Ubuntu + Nginx)
 
-```bash
-sudo apt install php8.3-fpm php8.3-mysql php8.3-zip php8.3-mbstring php8.3-xml mysql-server nginx
-```
+- Use os modelos [`deploy/nginx.conf.example`](deploy/nginx.conf.example) e [`deploy/supervisor.conf.example`](deploy/supervisor.conf.example).
+- HTTPS é obrigatório (os cookies de sessão são `secure` em produção). Use Let's Encrypt.
+- Rode `php artisan optimize` após cada deploy.
 
-- Aponte o `root` do servidor Nginx para `.../protocolo/public`.
-- Configure o Query Worker se usar filas em background: `php artisan queue:work --daemon`.
-- Configure o Cron do Scheduler (seção anterior).
-- Para performance e segurança, rode `php artisan optimize` e ative HTTPS (Let's Encrypt).
+### Monitoramento
+
+- `GET /up` retorna `200` quando a aplicação e o banco respondem; `500` quando o banco está indisponível — use em monitoramento/balanceador.
+- Logs diários em `storage/logs/laravel-AAAA-MM-DD.log` (canal `daily`).
 
 ## Manutenção
 

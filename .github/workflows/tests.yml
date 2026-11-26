@@ -1,0 +1,33 @@
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_sqlite, sqlite3, fileinfo, zip, gd
+          coverage: none
+
+      - name: Criar o arquivo .env
+        run: cp .env.example .env
+
+      - name: Instalar dependências (Composer)
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Gerar a chave da aplicação
+        run: php artisan key:generate
+
+      - name: Executar a suíte de testes
+        run: php artisan test

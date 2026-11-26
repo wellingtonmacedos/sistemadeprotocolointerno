@@ -1,0 +1,54 @@
+# Exemplo de configuração Nginx para o Sistema de Protocolo Interno (VPS).
+#
+# 1) Copie para /etc/nginx/sites-available/protocolo.conf
+# 2) Ajuste server_name, root e o socket do PHP-FPM (php8.2-fpm.sock)
+# 3) ln -s /etc/nginx/sites-available/protocolo.conf /etc/nginx/sites-enabled/
+# 4) nginx -t && systemctl reload nginx
+# 5) Emitir o certificado: certbot --nginx -d protocolo.exemplo.com
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name protocolo.exemplo.com;
+    root /var/www/protocolo/public;
+
+    index index.php;
+    charset utf-8;
+
+    # Deve ser >= PROTOCOLO_MAX_UPLOAD_KB (com margem). Ex.: 10 MB -> 12M.
+    client_max_body_size 12M;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Health check (usado por monitoramento/balanceador).
+    location = /up {
+        access_log off;
+        try_files $uri /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    # Bloqueia arquivos ocultos, exceto .well-known (certbot).
+    location ~ /\.(?!well-known).* { deny all; }
+
+    location ~ \.php$ {
+        # Ajuste a versão do socket conforme o PHP instalado.
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_hide_header X-Powered-By;
+        include fastcgi_params;
+    }
+}
+
+# Bloco HTTPS (gerado/gerenciado pelo certbot).
+# server {
+#     listen 443 ssl http2;
+#     server_name protocolo.exemplo.com;
+#     root /var/www/protocolo/public;
+#     ... (mesmos locations acima) ...
+#     ssl_certificate     /etc/letsencrypt/live/protocolo.exemplo.com/fullchain.pem;
+#     ssl_certificate_key /etc/letsencrypt/live/protocolo.exemplo.com/privkey.pem;
+# }
