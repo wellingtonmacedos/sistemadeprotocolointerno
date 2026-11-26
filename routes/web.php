@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CommissionController;
@@ -37,7 +39,16 @@ Route::get('/', function () {
 // Autenticação
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->name('login.attempt');
+    // O limite por e-mail+IP é aplicado no controller; este limita por IP,
+    // cobrindo tentativas que variam o e-mail informado.
+    Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:30,1')->name('login.attempt');
+
+    // Recuperação de senha
+    Route::get('/esqueci-senha', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('/esqueci-senha', [PasswordResetLinkController::class, 'store'])
+        ->middleware('throttle:6,1')->name('password.email');
+    Route::get('/redefinir-senha/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/redefinir-senha', [NewPasswordController::class, 'store'])->name('password.store');
 });
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 

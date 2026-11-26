@@ -31,11 +31,17 @@
                    class="w-full rounded-lg border border-line-strong bg-surface-2 px-3.5 py-2.5 text-sm text-body placeholder:text-faint focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15">
         </div>
 
-        <label class="flex items-center gap-2 text-sm text-muted">
-            <input type="checkbox" name="remember" value="1"
-                   class="h-4 w-4 rounded border-line-strong text-brand-600 focus:ring-brand-500/30">
-            Lembrar-me neste dispositivo
-        </label>
+        <div class="flex items-center justify-between gap-3">
+            <label class="flex items-center gap-2 text-sm text-muted">
+                <input type="checkbox" name="remember" value="1"
+                       class="h-4 w-4 rounded border-line-strong text-brand-600 focus:ring-brand-500/30">
+                Lembrar-me
+            </label>
+
+            <a href="{{ route('password.request') }}" class="text-sm font-medium text-brand-600 hover:text-brand-700">
+                Esqueci minha senha
+            </a>
+        </div>
 
         <button type="submit"
                 class="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-card transition hover:from-brand-600 hover:to-brand-800 focus:outline-none focus:ring-4 focus:ring-brand-500/30 active:scale-[0.99]">

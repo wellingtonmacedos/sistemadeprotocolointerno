@@ -76,6 +76,27 @@ PROTOCOLO_MAX_UPLOAD_KB=10240
 
 > Defina uma senha forte em `SUPER_ADMIN_PASSWORD` e altere-a após o primeiro acesso.
 
+## Recuperação de senha
+
+A tela de login tem o link **Esqueci minha senha** (`/esqueci-senha`). O fluxo usa o broker
+de senhas do Laravel (tabela `password_reset_tokens`, link válido por 60 minutos) e envia um
+e-mail com o link de redefinição.
+
+Para que os e-mails sejam entregues, configure um SMTP real no `.env`:
+
+```env
+MAIL_MAILER=smtp
+MAIL_SCHEME=tls
+MAIL_HOST=smtp.seu-provedor.com
+MAIL_PORT=587
+MAIL_USERNAME=usuario@dominio.com
+MAIL_PASSWORD=senha
+MAIL_FROM_ADDRESS="nao-responda@dominio.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+> Em desenvolvimento, `MAIL_MAILER=log` grava o e-mail em `storage/logs/laravel.log` em vez de enviá-lo.
+
 ## Agendador (Cron)
 
 O backup automático depende do Scheduler. Adicione ao Cron:

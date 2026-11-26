@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToInstitution;
+use App\Notifications\ResetPasswordNotification;
 use App\Support\Tenant;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -68,6 +69,12 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->role?->slug === 'super_admin';
+    }
+
+    /** Envia o e-mail de redefinição de senha (mensagem em português). */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     public function isCouncilor(): bool
