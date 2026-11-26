@@ -35,6 +35,7 @@ APP_DEBUG=false
 APP_URL=https://seu-dominio.com.br
 APP_TIMEZONE=America/Fortaleza
 APP_LOCALE=pt_BR
+APP_FALLBACK_LOCALE=pt_BR
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -45,18 +46,35 @@ DB_PASSWORD=senha
 
 QUEUE_CONNECTION=database
 SESSION_DRIVER=database
+SESSION_ENCRYPT=true
+SESSION_SECURE_COOKIE=true
 CACHE_STORE=database
 FILESYSTEM_DISK=local
+
+LOG_STACK=daily
+LOG_LEVEL=info
+LOG_DAILY_DAYS=30
+
+# Proxies confiáveis (Nginx/balanceador). Use "*" quando o proxy for controlado.
+TRUSTED_PROXIES=*
+
+# Credenciais do Super Admin criado pelo seeder (obrigatórias).
+SUPER_ADMIN_EMAIL=superadmin@protocolo.local
+SUPER_ADMIN_PASSWORD=uma-senha-forte
+
+# Limite de upload de anexos (KB); deve caber em upload_max_filesize/post_max_size do php.ini.
+PROTOCOLO_MAX_UPLOAD_KB=10240
 ```
 
 > O disco `local` mantém anexos e backups **fora da pasta pública** (`storage/app/private`).
+> Ajuste `upload_max_filesize` e `post_max_size` no `php.ini` para um valor compatível com `PROTOCOLO_MAX_UPLOAD_KB`.
 
 ### Credenciais iniciais
 
-- Super Admin: definido por `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` (padrão `superadmin@protocolo.local` / `Admin@12345`).
+- Super Admin: criado pelo seeder a partir de `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD`. Se `SUPER_ADMIN_PASSWORD` não for definida, o seeder **não** cria o usuário.
 - Ambiente local (`APP_ENV=local`) cria também a "Câmara Demo" com usuários de teste.
 
-> Altere a senha do Super Admin imediatamente após o primeiro acesso.
+> Defina uma senha forte em `SUPER_ADMIN_PASSWORD` e altere-a após o primeiro acesso.
 
 ## Agendador (Cron)
 

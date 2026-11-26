@@ -11,8 +11,14 @@ class SuperAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        $email = env('SUPER_ADMIN_EMAIL', 'superadmin@protocolo.local');
-        $password = env('SUPER_ADMIN_PASSWORD', 'Admin@12345');
+        $email = config('protocolo.super_admin.email');
+        $password = config('protocolo.super_admin.password');
+
+        if (blank($email) || blank($password)) {
+            $this->command?->error('Super Admin não criado: defina SUPER_ADMIN_EMAIL e SUPER_ADMIN_PASSWORD no .env.');
+
+            return;
+        }
 
         Tenant::bypass();
 
