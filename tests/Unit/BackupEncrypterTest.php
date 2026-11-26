@@ -66,4 +66,47 @@ class BackupEncrypterTest extends TestCase
 
         BackupEncrypter::decryptFile($encrypted, $source.'.bad');
     }
+
+    public function test_falls_back_to_the_app_key_when_no_dedicated_key_is_set(): void
+    {
+        config([
+            'protocolo.backup_key' => null,
+            'app.key' => 'base64:'.base64_encode(str_repeat('a', 32)),
+        ]);
+
+        $this->assertSame(
+            hash('sha256', (string) config('app.key'), true),
+            BackupEncrypter::key()
+        );
+    }
+
+    public function test_dedicated_key_is_independent_from_the_app_key(): void
+    {
+        config([
+            'app.key' => 'base64:'.base64_encode(str_repeat('a', 32)),
+            'protocolo.backup_key' => 'base64:'.base64_encode(str_repeat('b', 32)),
+        ]);
+
+        $this->assertNotSame(
+            hash('sha256', (string) config('app.key'), true),
+            BackupEncrypter::key()
+        );
+    }
+
+    public function test_backup_encrypted_with_the_dedicated_key_cannot_be_read_after_key_rotation(): void
+    {
+        config(['protocolo.backup_key' => 'base64:'.base64_encode(str_repeat('k', 32))]);
+
+        $source = tempnam(sys_get_temp_dir(), 'spi_plain_');
+        file_put_contents($source, 'conteudo-com-chave-dedicada');
+
+        $encrypted = $source.'.enc';
+        BackupEncrypter::encryptFile($source, $encrypted);
+
+        config(['protocolo.backup_key' => 'base64:'.base64_encode(str_repeat('j', 32))]);
+
+        $this->expectException(\RuntimeException::class);
+
+        BackupEncrypter::decryptFile($encrypted, $source.'.bad');
+    }
 }

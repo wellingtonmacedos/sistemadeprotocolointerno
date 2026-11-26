@@ -18,7 +18,7 @@ jobs:
         with:
           php-version: '8.2'
           extensions: mbstring, pdo_sqlite, sqlite3, fileinfo, zip, gd
-          coverage: none
+          coverage: pcov
 
       - name: Criar o arquivo .env
         run: cp .env.example .env
@@ -29,5 +29,55 @@ jobs:
       - name: Gerar a chave da aplicação
         run: php artisan key:generate
 
-      - name: Executar a suíte de testes
-        run: php artisan test
+      - name: Executar a suíte de testes (com cobertura)
+        run: php artisan test --coverage
+
+  navegador:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_sqlite, sqlite3, fileinfo, zip, gd
+          coverage: none
+
+      - name: Instalar dependências (Composer)
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      # O Chrome dos runners do GitHub é usado; o ChromeDriver compatível é baixado aqui.
+      - name: Instalar o ChromeDriver
+        run: php artisan dusk:chrome-driver --detect
+
+      - name: Preparar o ambiente (.env) e a base de dados
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          sed -i 's|^APP_ENV=.*|APP_ENV=local|' .env
+          sed -i 's|^APP_URL=.*|APP_URL=http://127.0.0.1:8000|' .env
+          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
+          sed -i 's|^DB_DATABASE=.*|DB_DATABASE=database/database.sqlite|' .env
+          sed -i 's|^SESSION_SECURE_COOKIE=.*|SESSION_SECURE_COOKIE=false|' .env
+          sed -i 's|^MAIL_MAILER=.*|MAIL_MAILER=array|' .env
+          touch database/database.sqlite
+          php artisan migrate --force
+          php artisan db:seed --class=RolePermissionSeeder --force
+          php artisan db:seed --class=DemoSeeder --force
+
+      - name: Executar os testes de navegador (Dusk)
+        run: |
+          php artisan serve --port=8000 > storage/logs/serve.log 2>&1 &
+          sleep 3
+          php artisan dusk
+
+      - name: Publicar capturas de tela das falhas
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dusk-screenshots
+          path: tests/Browser/screenshots
+          if-no-files-found: ignore

@@ -5,7 +5,9 @@ namespace App\Support;
 /**
  * Criptografia autenticada (AES-256-GCM) dos arquivos de backup.
  *
- * A chave é derivada da APP_KEY do ambiente; nenhuma senha é armazenada em banco.
+ * A chave é derivada de BACKUP_ENCRYPTION_KEY e, quando esta não é definida,
+ * da APP_KEY do ambiente (mantendo compatibilidade com backups antigos).
+ * Nenhuma senha é armazenada em banco.
  * Formato do arquivo: MAGIC(8) | IV(12) | TAG(16) | ciphertext.
  */
 class BackupEncrypter
@@ -23,7 +25,9 @@ class BackupEncrypter
 
     public static function key(): string
     {
-        return hash('sha256', (string) config('app.key'), true);
+        $secret = config('protocolo.backup_key') ?: config('app.key');
+
+        return hash('sha256', (string) $secret, true);
     }
 
     public static function isEncryptedFile(string $path): bool

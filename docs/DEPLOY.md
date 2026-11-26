@@ -28,7 +28,8 @@ npm run build
 cp .env.example .env
 php artisan key:generate
 # Edite o .env: APP_URL, APP_ENV=production, APP_DEBUG=false,
-# DB_*, MAIL_*, TRUSTED_PROXIES, SUPER_ADMIN_PASSWORD e PROTOCOLO_MAX_UPLOAD_KB
+# DB_*, MAIL_*, TRUSTED_PROXIES, SUPER_ADMIN_PASSWORD, PROTOCOLO_MAX_UPLOAD_KB
+# e BACKUP_ENCRYPTION_KEY (chave dedicada dos backups; gere com `php artisan key:generate --show`)
 
 # Banco
 php artisan migrate --force
@@ -95,7 +96,8 @@ php artisan optimize
 ## 4. Checklist de go-live
 
 - [ ] `APP_ENV=production` e `APP_DEBUG=false`
-- [ ] `APP_KEY` gerada e **guardada em local seguro** (os backups são criptografados com essa chave)
+- [ ] `APP_KEY` gerada e **guardada em local seguro**
+- [ ] `BACKUP_ENCRYPTION_KEY` definida e guardada em local seguro (os backups são criptografados com ela; sem ela são irrecuperáveis)
 - [ ] HTTPS ativo e `SESSION_SECURE_COOKIE=true`
 - [ ] `TRUSTED_PROXIES` configurado (se houver proxy/balanceador)
 - [ ] `SUPER_ADMIN_PASSWORD` forte e senha alterada após o primeiro acesso

@@ -64,6 +64,12 @@ SUPER_ADMIN_PASSWORD=uma-senha-forte
 
 # Limite de upload de anexos (KB); deve caber em upload_max_filesize/post_max_size do php.ini.
 PROTOCOLO_MAX_UPLOAD_KB=10240
+
+# Chave dedicada (AES-256-GCM) para criptografar os backups. Gere com:
+#   php artisan key:generate --show
+# Se ficar vazia, a chave é derivada da APP_KEY (compatível com backups antigos).
+# Guarde este valor em local seguro: sem ele os backups são irrecuperáveis.
+BACKUP_ENCRYPTION_KEY=
 ```
 
 > O disco `local` mantém anexos e backups **fora da pasta pública** (`storage/app/private`).
@@ -140,6 +146,51 @@ O passo a passo completo está em **[docs/DEPLOY.md](docs/DEPLOY.md)**, com arqu
 - `GET /up` retorna `200` quando a aplicação e o banco respondem; `500` quando o banco está indisponível — use em monitoramento/balanceador.
 - Logs diários em `storage/logs/laravel-AAAA-MM-DD.log` (canal `daily`).
 
+## Testes
+
+### Unidade e integração
+
+```bash
+php artisan test
+php artisan test --filter=ProtocolFlowTest   # apenas um arquivo
+```
+
+No CI (GitHub Actions), a suíte roda com cobertura de código habilitada (`.github/workflows/tests.yml`).
+
+### Navegador (E2E) com Laravel Dusk
+
+Os testes E2E abrem um navegador real (Chrome) contra a aplicação **em execução** e usam os
+dados de demonstração. Requisitos: Google Chrome instalado e o ChromeDriver compatível:
+
+```bash
+php artisan dusk:install        # instala o scaffold (uma vez) e o ChromeDriver
+# ou, apenas para atualizar o driver:
+php artisan dusk:chrome-driver --detect
+```
+
+Roteiro:
+
+1. Prepare a base de dados local (cria a "Câmara Demo" com usuários de teste):
+
+```bash
+php artisan migrate --seed
+```
+
+2. Suba o servidor em `http://127.0.0.1:8000` — deve coincidir com o `APP_URL` do `.env`:
+
+```bash
+php artisan serve --port=8000
+```
+
+3. Em outro terminal, execute os testes:
+
+```bash
+php artisan dusk
+```
+
+> O Dusk **não** inicia o servidor: sem a aplicação no ar, os testes falham por conexão recusada.
+> As capturas de tela das falhas são salvas em `tests/Browser/screenshots`.
+
 ## Manutenção
 
 ```bash
@@ -155,6 +206,10 @@ Disponível na **Central de Backup** do painel:
 - Backup por **Câmara** ou da **Plataforma** (todas as Câmaras), com manifesto e hash SHA-256.
 - Geração manual, automática (Scheduler) e restauração a partir de arquivo `.zip`.
 - Arquivos armazenados em `storage/app/private/backups` (fora da área pública).
+
+Os backups são criptografados com **AES-256-GCM** usando `BACKUP_ENCRYPTION_KEY`. Quando essa
+variável não é definida, a chave é derivada da `APP_KEY` (compatível com backups antigos) —
+defina `BACKUP_ENCRYPTION_KEY` para poder rotacionar a `APP_KEY` sem invalidar os backups.
 
 ---
 

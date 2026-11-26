@@ -13,6 +13,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Chave de Criptografia dos Backups
+    |--------------------------------------------------------------------------
+    |
+    | Chave dedicada (AES-256-GCM) usada para criptografar os arquivos de
+    | backup. Quando não informada, a chave é derivada da APP_KEY — o que
+    | mantém os backups antigos legíveis, mas amarra o backup à APP_KEY.
+    | Guarde este valor em local seguro: sem ele os backups são irrecuperáveis.
+    |
+    */
+    'backup_key' => env('BACKUP_ENCRYPTION_KEY'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Super Administrador
     |--------------------------------------------------------------------------
     |
